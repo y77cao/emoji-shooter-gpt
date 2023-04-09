@@ -1,6 +1,6 @@
-import { NUMBER_EMOJI_TYPES, TILE_SIZE } from "./constants";
+import { COLLISION_RADIUS, NUMBER_EMOJI_TYPES, TILE_SIZE } from "./constants";
 import { Tile } from "./Tile";
-import { randRange } from "./utils";
+import { circleIntersection, randRange } from "./utils";
 
 export class Grid {
   x: number; // X position
@@ -11,7 +11,7 @@ export class Grid {
   rows: number; // Number of tile rows
   tileWidth: number = TILE_SIZE; // Visual width of a tile
   tileHeight: number = TILE_SIZE; // Visual height of a tile
-  rowHeight: number = 32; // Height of a row
+  rowHeight: number = 34; // Height of a row
   tiles: Tile[][]; // The two-dimensional tile array
 
   constructor(x: number, y: number, columns: number, rows: number) {
@@ -26,7 +26,7 @@ export class Grid {
       const row = [];
       for (let j = 0; j < columns; j++) {
         // Define a tile type and a shift parameter for animation
-        row.push(new Tile(i, j, -1, 0));
+        row.push(new Tile(-1, 0));
       }
       this.tiles.push(row);
     }
@@ -63,6 +63,64 @@ export class Grid {
     }
   }
 
+  getTileCoordinate(row: number, column: number): { x: number; y: number } {
+    var tileX = column * TILE_SIZE;
+
+    // X offset for odd or even rows
+    if (row % 2) {
+      tileX += TILE_SIZE / 2;
+    }
+
+    var tileY = row * TILE_SIZE;
+    return { x: tileX, y: tileY };
+  }
+
+  hasCollision(incomingX: number, incomingY: number): boolean {
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.columns; j++) {
+        var tile = this.tiles[i][j];
+
+        // Skip empty tiles
+        if (tile.type < 0) {
+          continue;
+        }
+
+        // Check for intersections
+        const { x, y } = this.getTileCoordinate(i, j);
+        if (
+          circleIntersection(
+            incomingX + this.tileWidth / 2,
+            incomingY + this.tileHeight / 2,
+            COLLISION_RADIUS,
+            x + this.tileWidth / 2,
+            y + this.tileHeight / 2,
+            COLLISION_RADIUS
+          )
+        ) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  getGridPosition(
+    incomingX: number,
+    incomingY: number
+  ): { x: number; y: number } {
+    var gridy = Math.floor((incomingY - this.y) / this.rowHeight);
+
+    // Check for offset
+    var xoffset = 0;
+    if (gridy % 2) {
+      xoffset = this.tileWidth / 2;
+    }
+    var gridx = Math.floor((incomingX - xoffset - this.x) / this.tileWidth);
+
+    return { x: gridx, y: gridy };
+  }
+
   render(context: CanvasRenderingContext2D) {
     // Top to bottom
     for (let i = 0; i < this.rows; ++i) {
@@ -77,7 +135,8 @@ export class Grid {
           context.globalAlpha = tile.alpha;
 
           // Draw the tile using the color
-          tile.render(context);
+          const { x, y } = this.getTileCoordinate(i, j);
+          tile.render(context, x, y);
 
           context.restore();
         }

@@ -23,3 +23,24 @@ export const degToRad = (angle: number) => {
 export const randRange = (low: number, high: number) => {
   return Math.floor(low + Math.random() * (high - low + 1));
 };
+
+export const circleIntersection = (
+  x1: number,
+  y1: number,
+  r1: number,
+  x2: number,
+  y2: number,
+  r2: number
+) => {
+  // Calculate the distance between the centers
+  var dx = x1 - x2;
+  var dy = y1 - y2;
+  var len = Math.sqrt(dx * dx + dy * dy);
+
+  if (len < r1 + r2) {
+    // Circles intersect
+    return true;
+  }
+
+  return false;
+};

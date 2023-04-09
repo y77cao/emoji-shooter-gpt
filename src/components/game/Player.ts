@@ -5,18 +5,26 @@ import { degToRad } from "./utils";
 export class Player {
   x: number;
   y: number;
+  bubbleX: number;
+  bubbleY: number;
   angle: number = 90;
+  bubbleAngle: number = 90;
   bubble: Tile;
   nextBubble: Tile;
 
   constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
+    this.bubbleX = x;
+    this.bubbleY = y;
 
-    const nextbubbleX = this.x - 2 * TILE_SIZE;
-    const nextbubbleY = this.y;
-    this.bubble = new Tile(x, y, 0, 0);
-    this.nextBubble = new Tile(nextbubbleX, nextbubbleY, 0, 0);
+    this.bubble = new Tile(0, 0);
+    this.nextBubble = new Tile(0, 0);
+  }
+
+  setAngle(angle: number) {
+    this.angle = angle;
+    this.bubbleAngle = angle;
   }
 
   render(context: CanvasRenderingContext2D) {
@@ -43,7 +51,9 @@ export class Player {
     );
     context.stroke();
 
-    this.bubble.render(context);
-    this.nextBubble.render(context);
+    const nextbubbleX = this.x - 2 * TILE_SIZE;
+    const nextbubbleY = this.y;
+    this.bubble.render(context, this.bubbleX, this.bubbleY);
+    this.nextBubble.render(context, nextbubbleX, nextbubbleY);
   }
 }
