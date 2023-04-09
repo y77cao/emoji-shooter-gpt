@@ -2,6 +2,7 @@ import {
   ANIMATION_SPEED,
   COLLISION_RADIUS,
   NUMBER_EMOJI_TYPES,
+  TILE_SIZE,
 } from "./constants";
 import { Grid } from "./Grid";
 import { Player } from "./Player";
@@ -28,7 +29,6 @@ export class Game {
   grid: Grid;
   player: Player;
 
-  animationState: number = 0;
   lastFrame: number = 0;
   fpsTime: number = 0;
   frameCount: number = 0;
@@ -89,16 +89,16 @@ export class Game {
     this.updateFps(dt);
 
     if (this.state == State.READY) {
-      // Game is ready for player input
+      // noop
     } else if (this.state == State.SHOOT) {
       // Bubble is moving
       this.shootBubble(dt);
+    } else if (this.state == State.REMOVE) {
+      this.removeCluster(dt);
     }
   }
 
   shootBubble(dt: number) {
-    // Bubble is moving
-
     // Move the bubble in the direction of the mouse
     this.player.bubbleX +=
       dt * ANIMATION_SPEED * Math.cos(degToRad(this.player.bubbleAngle));
@@ -137,82 +137,144 @@ export class Game {
     // Get the grid position
     const centerX = this.player.bubbleX + this.grid.tileWidth / 2;
     const centerY = this.player.bubbleY + this.grid.tileHeight / 2;
-    let { x: newGridX, y: newGridY } = this.grid.getGridPosition(
-      centerX,
-      centerY
-    );
+    let { row, column } = this.grid.getClosestGridPosition(centerX, centerY);
 
-    // Make sure the grid position is valid
-    if (newGridX < 0) {
-      newGridX = 0;
+    // Hide the player bubble
+    this.player.bubble.visible = false;
+
+    // Set the tile
+    this.grid.tiles[row][column].type = this.player.bubble.type;
+
+    // Check for game over
+    if (this.isGameOver()) {
+      return;
     }
 
-    if (newGridX >= this.grid.columns) {
-      newGridX = this.grid.columns - 1;
+    console.log("Snapped bubble", { row, column });
+
+    // Find clusters
+    const cluster = this.grid.findCluster(row, column, true, true, false);
+
+    if (cluster.length >= 3) {
+      console.log({ cluster });
+      cluster.forEach((gridTile) => (gridTile.tile.toBeRemoved = true));
+      this.grid.clusterToBeRemoved = cluster;
+      this.setGameState(State.REMOVE);
+      return;
     }
 
-    if (newGridY < 0) {
-      newGridY = 0;
+    this.round++;
+    if (this.round >= 5) {
+      // Add two rows to the top
+      this.grid.addRowToTop();
+      this.grid.addRowToTop();
+      this.round = 0;
     }
 
-    if (newGridY >= this.grid.rows) {
-      newGridY = this.grid.rows - 1;
+    if (this.isGameOver()) {
+      return;
     }
-
-    // Check if the tile is empty
-    let addtile = false;
-    if (this.grid.tiles[newGridX][newGridY].type != -1) {
-      // Tile is not empty, shift the new tile downwards
-      for (let newrow = newGridY + 1; newrow < this.grid.rows; newrow++) {
-        if (this.grid.tiles[newGridX][newrow].type == -1) {
-          newGridY = newrow;
-          addtile = true;
-          break;
-        }
-      }
-    } else {
-      addtile = true;
-    }
-
-    // // Add the tile to the grid
-    // if (addtile) {
-    //   // Hide the player bubble
-    //   player.bubble.visible = false;
-
-    //   // Set the tile
-    //   this.grid.tiles[newGridX][newGridY].type = player.bubble.tiletype;
-
-    //   // Check for game over
-    //   if (checkGameOver()) {
-    //     return;
-    //   }
-
-    //   // Find clusters
-    //   cluster = findCluster(newGridX, newGridY, true, true, false);
-
-    //   if (cluster.length >= 3) {
-    //     // Remove the cluster
-    //     setGameState(gamestates.removecluster);
-    //     return;
-    //   }
-    // }
-
-    // // No clusters found
-    // turncounter++;
-    // if (turncounter >= 5) {
-    //   // Add a row of bubbles
-    //   addBubbles();
-    //   turncounter = 0;
-    //   rowoffset = (rowoffset + 1) % 2;
-
-    //   if (checkGameOver()) {
-    //     return;
-    //   }
-    // }
 
     // Next bubble
     this.newBubble();
     this.setGameState(State.READY);
+  }
+
+  removeCluster(dt: number) {
+    // Find floating clusters
+    const floatingClusters = this.grid.findFloatingClusters();
+    const cluster = this.grid.clusterToBeRemoved;
+
+    // Pop bubbles
+    let tilesLeft = false;
+    for (let i = 0; i < cluster.length; i++) {
+      const tile = cluster[i].tile;
+
+      if (tile.type >= 0) {
+        tilesLeft = true;
+
+        // Alpha animation
+        tile.alpha -= dt * 15;
+        if (tile.alpha < 0) {
+          tile.alpha = 0;
+        }
+
+        if (tile.alpha == 0) {
+          tile.type = -1;
+          tile.alpha = 1;
+        }
+      }
+    }
+
+    // Drop bubbles
+    for (let i = 0; i < floatingClusters.length; i++) {
+      for (let j = 0; j < floatingClusters[i].length; j++) {
+        const { tile, row, column } = floatingClusters[i][j];
+
+        if (tile.type >= 0) {
+          tilesLeft = true;
+
+          // Accelerate dropped tiles
+          tile.velocity += dt * 700;
+          tile.shift += dt * tile.velocity;
+
+          // Alpha animation
+          tile.alpha -= dt * 8;
+          if (tile.alpha < 0) {
+            tile.alpha = 0;
+          }
+
+          // Check if the bubbles are past the bottom of the level
+          if (
+            tile.alpha == 0 ||
+            row * TILE_SIZE + tile.shift >
+              (this.grid.rows - 1) * TILE_SIZE + TILE_SIZE
+          ) {
+            tile.type = -1;
+            tile.shift = 0;
+            tile.alpha = 1;
+          }
+        }
+      }
+    }
+
+    if (!tilesLeft) {
+      // Next bubble
+      this.newBubble();
+
+      // Check for game over
+      let tileFound = false;
+      for (var i = 0; i < this.grid.rows; i++) {
+        for (var j = 0; j < this.grid.columns; j++) {
+          if (this.grid.tiles[i][j].type != -1) {
+            tileFound = true;
+            break;
+          }
+        }
+      }
+
+      this.grid.resetToBeRemoved();
+      this.grid.clusterToBeRemoved = [];
+      if (tileFound) {
+        this.setGameState(State.READY);
+      } else {
+        this.setGameState(State.OVER);
+      }
+    }
+  }
+
+  isGameOver() {
+    const lastRowNonEmpty = this.grid.tiles[this.grid.tiles.length - 1].some(
+      (t) => t.type !== -1
+    );
+
+    if (lastRowNonEmpty) {
+      // Game over
+      this.setGameState(State.OVER);
+      return true;
+    }
+
+    return false;
   }
 
   updateFps(dt: number) {
@@ -274,7 +336,6 @@ export class Game {
 
   setGameState(state: State) {
     this.state = state;
-    this.animationState = 0;
   }
 
   newGame() {
@@ -296,13 +357,13 @@ export class Game {
   newBubble() {
     const nextType = this.getRandTypeForPlayerBubble();
     const newTile = new Tile(nextType, 0);
-    this.player.bubble = newTile;
+    this.player.setBubble(newTile);
   }
 
   getRandTypeForPlayerBubble() {
     const usedTypes = Array.from(
       new Set(this.grid.tiles.flat().map((tile) => tile.type))
-    );
+    ).filter((type) => type !== -1);
 
     if (usedTypes.length > 0) {
       return usedTypes[randRange(0, usedTypes.length - 1)];

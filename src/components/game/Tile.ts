@@ -4,7 +4,7 @@ import { NUMBER_EMOJI_TYPES, TILE_SIZE } from "./constants";
 export class Tile {
   type: number; // Tile type. -1 = empty, 0-6 = emoji
   shift: number; // Shift parameter for animation
-  removed: boolean = false; // Flag for removed tiles
+  toBeRemoved: boolean = false; // Flag for removed tiles
   velocity: number = 0; // Velocity for animation
   alpha: number = 1; // Alpha value for animation
   processed: boolean = false; // Flag for processed tiles

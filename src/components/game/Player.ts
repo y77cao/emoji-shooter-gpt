@@ -10,7 +10,6 @@ export class Player {
   angle: number = 90;
   bubbleAngle: number = 90;
   bubble: Tile;
-  nextBubble: Tile;
 
   constructor(x: number, y: number) {
     this.x = x;
@@ -19,12 +18,17 @@ export class Player {
     this.bubbleY = y;
 
     this.bubble = new Tile(0, 0);
-    this.nextBubble = new Tile(0, 0);
   }
 
   setAngle(angle: number) {
     this.angle = angle;
     this.bubbleAngle = angle;
+  }
+
+  setBubble(bubble: Tile) {
+    this.bubble = bubble;
+    this.bubbleX = this.x;
+    this.bubbleY = this.y;
   }
 
   render(context: CanvasRenderingContext2D) {
@@ -50,10 +54,6 @@ export class Player {
       centery - 1.5 * TILE_SIZE * Math.sin(degToRad(this.angle))
     );
     context.stroke();
-
-    const nextbubbleX = this.x - 2 * TILE_SIZE;
-    const nextbubbleY = this.y;
     this.bubble.render(context, this.bubbleX, this.bubbleY);
-    this.nextBubble.render(context, nextbubbleX, nextbubbleY);
   }
 }
