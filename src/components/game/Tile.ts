@@ -1,5 +1,6 @@
+import { NUMBER_EMOJI_TYPES } from "@/constants";
 import { store } from "@/redux/store";
-import { NUMBER_EMOJI_TYPES, TILE_SIZE } from "./constants";
+import { TILE_SIZE } from "./constants";
 
 export class Tile {
   type: number; // Tile type. -1 = empty, 0-6 = emoji
@@ -17,17 +18,18 @@ export class Tile {
 
   render(context: CanvasRenderingContext2D, x: number, y: number) {
     const state = store.getState();
-    const { assets } = state.preload;
+    const { assets } = state.app;
     if (this.type < 0 || this.type >= NUMBER_EMOJI_TYPES) return;
 
+    const asset = assets[this.type].image;
     context.drawImage(
-      assets,
-      this.type * TILE_SIZE,
+      asset,
+      0,
       0,
       TILE_SIZE,
       TILE_SIZE,
       x,
-      y,
+      y + this.shift,
       TILE_SIZE,
       TILE_SIZE
     );

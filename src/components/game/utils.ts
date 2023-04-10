@@ -44,3 +44,14 @@ export const circleIntersection = (
 
   return false;
 };
+
+export const drawCenterText = (
+  context: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  width: number
+) => {
+  var textdim = context.measureText(text);
+  context.fillText(text, x + (width - textdim.width) / 2, y);
+};

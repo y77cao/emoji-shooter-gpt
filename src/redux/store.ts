@@ -1,9 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import preloadReducer from "./preloadReducer";
+import appReducer from "./appReducer";
 
 export const store = configureStore({
   reducer: {
-    preload: preloadReducer,
+    app: appReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

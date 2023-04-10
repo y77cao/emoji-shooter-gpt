@@ -54,6 +54,7 @@ export class Player {
       centery - 1.5 * TILE_SIZE * Math.sin(degToRad(this.angle))
     );
     context.stroke();
-    this.bubble.render(context, this.bubbleX, this.bubbleY);
+    if (this.bubble.visible)
+      this.bubble.render(context, this.bubbleX, this.bubbleY);
   }
 }

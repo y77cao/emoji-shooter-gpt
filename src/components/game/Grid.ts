@@ -1,11 +1,8 @@
-import {
-  COLLISION_RADIUS,
-  neighborsOffsets,
-  NUMBER_EMOJI_TYPES,
-  TILE_SIZE,
-} from "./constants";
+import { NUMBER_EMOJI_TYPES } from "@/constants";
+import { randRange } from "@/utils";
+import { COLLISION_RADIUS, neighborsOffsets, TILE_SIZE } from "./constants";
 import { Tile } from "./Tile";
-import { circleIntersection, randRange } from "./utils";
+import { circleIntersection } from "./utils";
 
 type GridTile = {
   tile: Tile;
@@ -21,8 +18,7 @@ export class Grid {
   rows: number; // Number of tile rows
   tileWidth: number = TILE_SIZE; // Visual width of a tile
   tileHeight: number = TILE_SIZE; // Visual height of a tile
-  rowHeight: number = 34; // Height of a row
-  tiles: Tile[][]; // The two-dimensional tile array
+  tiles: Tile[][] = []; // The two-dimensional tile array
   clusterToBeRemoved: GridTile[] = []; // Array of tiles to be removed
 
   constructor(x: number, y: number, columns: number, rows: number) {
@@ -30,16 +26,16 @@ export class Grid {
     this.y = y;
     this.columns = columns;
     this.rows = rows;
-    this.tiles = [];
 
-    this.width = this.columns * this.tileWidth + this.tileWidth / 2;
-    this.height = (this.rows - 1) * this.rowHeight + this.tileHeight;
+    this.width = this.columns * this.tileWidth;
+    this.height = this.rows * this.tileHeight;
   }
 
   init() {
+    this.tiles = [];
     // Create a level with random tiles
     for (let i = 0; i < this.rows; i++) {
-      if (i < this.rows / 2) {
+      if (i < this.rows / 2 + 1) {
         this.tiles.push(this.generateRow());
       } else {
         this.tiles.push(this.generateRow(true));
@@ -81,14 +77,14 @@ export class Grid {
   }
 
   getTileCoordinate(row: number, column: number): { x: number; y: number } {
-    var tileX = column * TILE_SIZE;
+    var tileX = this.x + column * TILE_SIZE;
 
     // X offset for odd or even rows
     if (row % 2) {
       tileX += TILE_SIZE / 2;
     }
 
-    var tileY = row * TILE_SIZE;
+    var tileY = this.y + row * TILE_SIZE;
     return { x: tileX, y: tileY };
   }
 
@@ -151,7 +147,6 @@ export class Grid {
       row = this.rows - 1;
     }
 
-    console.log({ column, row, xOffset, incomingX, incomingY });
     if (this.tiles[row][column].type !== -1) {
       // Tile is not empty, shift the new tile downwards
       for (let nextRow = row + 1; nextRow < this.rows; nextRow++) {
@@ -223,14 +218,6 @@ export class Grid {
         ) {
           toProcess.push(neighbors[i]);
         }
-      }
-      if (matchType) {
-        console.log(
-          `neighbors of (${currentTile.row}, ${currentTile.column}): ${neighbors
-            .map((t) => `(${t.row}, ${t.column})`)
-            .join(", ")}`
-        );
-        console.log(this.tiles);
       }
     }
 

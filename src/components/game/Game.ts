@@ -1,13 +1,12 @@
-import {
-  ANIMATION_SPEED,
-  COLLISION_RADIUS,
-  NUMBER_EMOJI_TYPES,
-  TILE_SIZE,
-} from "./constants";
+import { NUMBER_EMOJI_TYPES } from "@/constants";
+import { writeStory } from "@/redux/appReducer";
+import { store } from "@/redux/store";
+import { randRange } from "@/utils";
+import { ANIMATION_SPEED, TILE_SIZE } from "./constants";
 import { Grid } from "./Grid";
 import { Player } from "./Player";
 import { Tile } from "./Tile";
-import { degToRad, getMousePos, radToDeg, randRange } from "./utils";
+import { degToRad, drawCenterText, getMousePos, radToDeg } from "./utils";
 
 enum State {
   INIT,
@@ -22,7 +21,6 @@ export class Game {
   context: CanvasRenderingContext2D;
 
   initialized: boolean = false;
-  score: number = 0;
   state: State = State.INIT;
   round: number = 0;
 
@@ -38,7 +36,7 @@ export class Game {
     this.canvas = canvas;
     this.context = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 
-    const grid = new Grid(4, 4, 9, 16);
+    const grid = new Grid(10, 10, 9, 14);
     const player = new Player(
       grid.x + grid.width / 2 - grid.tileWidth / 2,
       grid.y + grid.height
@@ -150,16 +148,21 @@ export class Game {
       return;
     }
 
-    console.log("Snapped bubble", { row, column });
-
     // Find clusters
     const cluster = this.grid.findCluster(row, column, true, true, false);
 
     if (cluster.length >= 3) {
-      console.log({ cluster });
       cluster.forEach((gridTile) => (gridTile.tile.toBeRemoved = true));
       this.grid.clusterToBeRemoved = cluster;
       this.setGameState(State.REMOVE);
+
+      const state = store.getState();
+      const clusterType = cluster[0].tile.type;
+      const { assets } = state.app;
+      console.log(cluster[0].tile.type, assets);
+      const emojiName = assets[clusterType].name;
+      store.dispatch(writeStory(emojiName));
+
       return;
     }
 
@@ -194,7 +197,7 @@ export class Game {
         tilesLeft = true;
 
         // Alpha animation
-        tile.alpha -= dt * 15;
+        tile.alpha -= dt * 8;
         if (tile.alpha < 0) {
           tile.alpha = 0;
         }
@@ -215,11 +218,11 @@ export class Game {
           tilesLeft = true;
 
           // Accelerate dropped tiles
-          tile.velocity += dt * 700;
+          tile.velocity += dt * 1200;
           tile.shift += dt * tile.velocity;
 
           // Alpha animation
-          tile.alpha -= dt * 8;
+          tile.alpha -= dt * 3;
           if (tile.alpha < 0) {
             tile.alpha = 0;
           }
@@ -294,7 +297,7 @@ export class Game {
 
   drawFrame() {
     // Draw background
-    this.context.fillStyle = "#e8eaec";
+    this.context.fillStyle = "#efe8ff";
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
@@ -310,27 +313,24 @@ export class Game {
 
     // Game Over overlay
     if (this.state === State.OVER) {
-      //   this.context.fillStyle = "rgba(0, 0, 0, 0.8)";
-      //   this.context.fillRect(
-      //     0,
-      //     0,
-      //     this.grid.width + 8,
-      //     this.grid.height + 2 * this.grid.tileHeight + 8 - yOffset
-      //   );
-      //   this.context.fillStyle = "#ffffff";
-      //   this.context.font = "24px Verdana";
-      //   drawCenterText(
-      //     "Game Over!",
-      //     this.grid.x,
-      //     this.grid.y + this.grid.height / 2 + 10,
-      //     this.grid.width
-      //   );
-      //   drawCenterText(
-      //     "Click to start",
-      //     this.grid.x,
-      //     this.grid.y + this.grid.height / 2 + 40,
-      //     this.grid.width
-      //   );
+      this.context.fillStyle = "rgba(0, 0, 0, 0.8)";
+      this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.context.fillStyle = "#ffffff";
+      this.context.font = "12px Verdana";
+      drawCenterText(
+        this.context,
+        "Story is over. Check it out ->",
+        this.grid.x,
+        this.grid.y + this.grid.height / 2 + 10,
+        this.grid.width
+      );
+      drawCenterText(
+        this.context,
+        "Click to re-write",
+        this.grid.x,
+        this.grid.y + this.grid.height / 2 + 40,
+        this.grid.width
+      );
     }
   }
 
@@ -340,7 +340,6 @@ export class Game {
 
   newGame() {
     // Reset score
-    this.score = 0;
     this.round = 0;
 
     // Set the gamestate to ready
