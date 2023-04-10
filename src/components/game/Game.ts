@@ -6,7 +6,13 @@ import { ANIMATION_SPEED, TILE_SIZE } from "./constants";
 import { Grid } from "./Grid";
 import { Player } from "./Player";
 import { Tile } from "./Tile";
-import { degToRad, drawCenterText, getMousePos, radToDeg } from "./utils";
+import {
+  degToRad,
+  drawCenterText,
+  getMousePos,
+  radToDeg,
+  triggerWriteStory,
+} from "./utils";
 
 enum State {
   INIT,
@@ -156,12 +162,8 @@ export class Game {
       this.grid.clusterToBeRemoved = cluster;
       this.setGameState(State.REMOVE);
 
-      const state = store.getState();
       const clusterType = cluster[0].tile.type;
-      const { assets } = state.app;
-      console.log(cluster[0].tile.type, assets);
-      const emojiName = assets[clusterType].name;
-      store.dispatch(writeStory(emojiName));
+      triggerWriteStory(clusterType);
 
       return;
     }
@@ -274,6 +276,8 @@ export class Game {
     if (lastRowNonEmpty) {
       // Game over
       this.setGameState(State.OVER);
+      const tileType = this.player.bubble.type;
+      triggerWriteStory(tileType, true);
       return true;
     }
 
@@ -297,7 +301,7 @@ export class Game {
 
   drawFrame() {
     // Draw background
-    this.context.fillStyle = "#efe8ff";
+    this.context.fillStyle = "#ffffff";
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 

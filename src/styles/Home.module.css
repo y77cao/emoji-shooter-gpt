@@ -1,0 +1,42 @@
+.titleContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  width: 100%;
+}
+
+.title {
+  text-align: center;
+  border: 1px solid black;
+  width: 70%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.canvasContainer {
+  border: 1px solid black;
+  box-sizing: border-box;
+}
+
+.storyContainer {
+  width: 400px;
+  height: 634;
+  overflow: scroll;
+  border: 1px solid black;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.contentContainer {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.contentInnerContainer {
+  width: 70%;
+  display: flex;
+  justify-content: space-between;
+}

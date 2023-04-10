@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect } from "react";
 import { Game } from "@/components/game/Game";
 import { useDispatch, useSelector } from "react-redux";
 import { preloaded } from "@/redux/appReducer";
@@ -6,6 +6,7 @@ import { getRandomEmojiNames, loadImage } from "@/utils";
 import { NUMBER_EMOJI_TYPES } from "@/constants";
 import { OpenAIClient } from "@/clients/openai";
 import { RootState } from "@/redux/store";
+import styles from "@/styles/Home.module.css";
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -35,10 +36,22 @@ export default function Home() {
   }, []);
   return (
     <>
-      <div>
-        <canvas ref={canvasRef} width="400" height="628" />
+      <div className={styles.titleContainer}>
+        <div className={styles.title}>
+          Let&apos;s play a game (with GPT-3). More specifically, you play the
+          Emoji Shooter, and AI composes a story according to your game
+          progress.
+        </div>
       </div>
-      <div>{app.story}</div>
+
+      <div className={styles.contentContainer}>
+        <div className={styles.contentInnerContainer}>
+          <div className={styles.canvasContainer}>
+            <canvas ref={canvasRef} width="400" height="628" />
+          </div>
+          <div className={styles.storyContainer}>{app.story}</div>
+        </div>
+      </div>
     </>
   );
 }

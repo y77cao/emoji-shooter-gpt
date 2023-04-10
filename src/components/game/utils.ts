@@ -1,3 +1,7 @@
+import { WriteAction } from "@/constants";
+import { writeStory } from "@/redux/appReducer";
+import { store } from "@/redux/store";
+
 export const getMousePos = (canvas: HTMLCanvasElement, e: MouseEvent) => {
   var rect = canvas.getBoundingClientRect();
   return {
@@ -18,10 +22,6 @@ export const radToDeg = (angle: number) => {
 // Convert degrees to radians
 export const degToRad = (angle: number) => {
   return angle * (Math.PI / 180);
-};
-
-export const randRange = (low: number, high: number) => {
-  return Math.floor(low + Math.random() * (high - low + 1));
 };
 
 export const circleIntersection = (
@@ -54,4 +54,12 @@ export const drawCenterText = (
 ) => {
   var textdim = context.measureText(text);
   context.fillText(text, x + (width - textdim.width) / 2, y);
+};
+
+export const triggerWriteStory = (tileType: number, end = false) => {
+  const state = store.getState();
+  const { assets } = state.app;
+  const emojiName = assets[tileType].name;
+  const action = end ? WriteAction.END : WriteAction.CONTINUE;
+  store.dispatch(writeStory(emojiName, action));
 };
