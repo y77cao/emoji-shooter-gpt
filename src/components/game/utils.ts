@@ -1,5 +1,5 @@
 import { WriteAction } from "@/constants";
-import { writeStory } from "@/redux/appReducer";
+import { resetStory, writeStory } from "@/redux/appReducer";
 import { store } from "@/redux/store";
 
 export const getMousePos = (canvas: HTMLCanvasElement, e: MouseEvent) => {
@@ -62,4 +62,8 @@ export const triggerWriteStory = (tileType: number, end = false) => {
   const emojiName = assets[tileType].name;
   const action = end ? WriteAction.END : WriteAction.CONTINUE;
   store.dispatch(writeStory(emojiName, action));
+};
+
+export const rewriteStory = () => {
+  store.dispatch(resetStory());
 };

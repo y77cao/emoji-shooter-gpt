@@ -29,8 +29,8 @@ export const getPrompt = (keywords: string, action: WriteAction) => {
     case WriteAction.START:
       return `Write a one-line story about ${keywords}. Word limit is 50.`;
     case WriteAction.CONTINUE:
-      return `Continue the story with ${keywords} using one sentence.`;
+      return `Continue the story with keyword ${keywords} using one sentence.`;
     case WriteAction.END:
-      return `Write a surprising ending for the story with ${keywords} using one sentence.`;
+      return `Write a surprising ending for the story with keyword ${keywords} using one sentence.`;
   }
 };

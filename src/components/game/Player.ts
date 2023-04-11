@@ -36,22 +36,21 @@ export class Player {
     const centery = this.y + TILE_SIZE / 2;
 
     // Draw player background circle
-    context.fillStyle = "#7a7a7a";
     context.beginPath();
     context.arc(centerx, centery, COLLISION_RADIUS + 12, 0, 2 * Math.PI, false);
     context.fill();
     context.lineWidth = 2;
-    context.strokeStyle = "#8c8c8c";
+    context.strokeStyle = "#d4d4d4";
     context.stroke();
 
     // Draw the angle
     context.lineWidth = 2;
-    context.strokeStyle = "#0000ff";
+    context.strokeStyle = "#d4d4d4";
     context.beginPath();
     context.moveTo(centerx, centery);
     context.lineTo(
-      centerx + 1.5 * TILE_SIZE * Math.cos(degToRad(this.angle)),
-      centery - 1.5 * TILE_SIZE * Math.sin(degToRad(this.angle))
+      centerx + 3 * TILE_SIZE * Math.cos(degToRad(this.angle)),
+      centery - 3 * TILE_SIZE * Math.sin(degToRad(this.angle))
     );
     context.stroke();
     if (this.bubble.visible)

@@ -10,8 +10,28 @@ import styles from "@/styles/Home.module.css";
 
 export default function Home() {
   const dispatch = useDispatch();
+  const [text, setText] = React.useState("");
 
   const app = useSelector((state: RootState) => state.app);
+
+  useEffect(() => {
+    if (!app.story.length) {
+      setText("");
+      return;
+    }
+    setText(app.story.map((s) => s.sentence).join(" "));
+    // TODO typing effect not working properly
+    // const words = app.story[app.story.length - 1]?.sentence.split(" ");
+    // const timeouts: NodeJS.Timeout[] = [];
+    // const typeWord = (word: string, i: number) =>
+    //   setTimeout(() => setText(text + " " + word), i * 100);
+    // words.reduce((prev, word, i) => {
+    //   prev += word + " ";
+    //   timeouts.push(typeWord(prev, i));
+    //   return prev;
+    // }, "");
+    // return () => timeouts.forEach(clearTimeout);
+  }, [app.story]);
 
   const canvasRef = React.createRef<HTMLCanvasElement>();
 
@@ -49,7 +69,7 @@ export default function Home() {
           <div className={styles.canvasContainer}>
             <canvas ref={canvasRef} width="400" height="628" />
           </div>
-          <div className={styles.storyContainer}>{app.story}</div>
+          <textarea className={styles.storyContainer} value={text} />
         </div>
       </div>
     </>

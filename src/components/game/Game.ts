@@ -11,6 +11,7 @@ import {
   drawCenterText,
   getMousePos,
   radToDeg,
+  rewriteStory,
   triggerWriteStory,
 } from "./utils";
 
@@ -169,7 +170,7 @@ export class Game {
     }
 
     this.round++;
-    if (this.round >= 5) {
+    if (this.round >= 4) {
       // Add two rows to the top
       this.grid.addRowToTop();
       this.grid.addRowToTop();
@@ -417,6 +418,7 @@ export class Game {
       this.setGameState(State.SHOOT);
     } else if (this.state == State.OVER) {
       this.newGame();
+      rewriteStory();
     }
   }
 }
