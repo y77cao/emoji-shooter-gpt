@@ -4,7 +4,7 @@ import { getPrompt } from "@/utils";
 import { createSlice } from "@reduxjs/toolkit";
 
 type AppState = {
-  assets: HTMLImageElement[];
+  assets: { name: string; image: HTMLImageElement }[];
   openAIClient?: OpenAIClient;
   loading: boolean;
   story: { sentence: string; prompt: string }[];
@@ -56,12 +56,12 @@ export const writeStory =
         .join(" ");
       const text = prevContext.length ? `${prevContext} ${prompt}` : prompt;
 
-      let completion = await openAIClient.complete(text);
+      let completion = await openAIClient?.complete(text);
       if (completion?.includes(prompt)) {
         completion = completion.split(prompt)[1];
       }
 
-      dispatch(writeStorySuccess({ prompt, sentence: completion.trim() }));
+      dispatch(writeStorySuccess({ prompt, sentence: completion?.trim() }));
     } catch (error) {
       console.log(error);
       throw error;
